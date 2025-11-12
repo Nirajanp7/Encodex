@@ -1,0 +1,148 @@
+.app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  background: var(--bg);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 22px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: grid;
+  place-items: center;
+  color: white;
+  box-shadow: var(--shadow-sm);
+  font-size: 16px;
+}
+
+.brandTitle { font-weight: 800; font-size: 20px; letter-spacing: .2px; }
+.headerNote { color: var(--text-muted); font-size: 14px; }
+
+.navbar {
+  position: sticky;
+  top: 58px;
+  z-index: 15;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.navbarInner {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 22px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.navLink {
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--text);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.navLink:hover { background: #f9fbff; }
+.navActive {
+  background: #f1f5ff;
+  border-color: #dbe5ff;
+  color: #3556d1;
+}
+
+.main { max-width: 1040px; width: 100%; margin: 0 auto; padding: 22px; }
+
+.footer {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  text-align: center;
+  color: var(--text-muted);
+  padding: 14px 10px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 18px;
+}
+.authCard { max-width: 520px; margin: 48px auto; }
+.subtle { color: var(--text-muted); }
+
+.label { display: block; font-size: 13px; color: var(--primary); margin-bottom: 6px; }
+
+.input, .select, .search {
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  outline: none;
+  transition: box-shadow .2s ease, border-color .2s ease;
+}
+.input:focus, .select:focus, .search:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.search { flex: 1; min-width: 220px; }
+.select { width: auto; }
+
+.btn {
+  border: none; border-radius: 12px; padding: 10px 14px; cursor: pointer;
+  font-weight: 600; transition: transform .04s ease, box-shadow .2s ease, background .2s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btnPrimary { background: var(--primary); color: white; box-shadow: var(--shadow-sm); }
+.btnPrimary:hover { background: var(--primary-600); }
+.btnSecondary { background: #fff; color: var(--text); border: 1px solid var(--border); }
+.btnSecondary:hover { box-shadow: var(--shadow-sm); }
+.btnDanger { background: #fff; color: var(--danger); border: 1px solid #f3c1c1; }
+.btnDanger:hover { background: #fff5f5; }
+
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.fileCardHeader { display: flex; justify-content: space-between; align-items: center; }
+.fileName { font-weight: 700; }
+
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  font-size: 12px; padding: 4px 10px; border-radius: 999px;
+  background: #f1f5ff; color: #3556d1; border: 1px solid #dbe5ff;
+}
+.chipGrey {
+  background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb;
+}
+
+.error { background: #fee2e2; color: #7f1d1d; border: 1px solid #fecaca; padding: 10px 12px; border-radius: 12px; }
+
+.modalBackdrop { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.35); display: grid; place-items: center; z-index: 50; }
+.modal { width: 560px; max-width: 92vw; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); padding: 18px; box-shadow: var(--shadow-md); }
+
+.row { display: flex; gap: 8px; align-items: center; }
+.mtt { margin-top: 12px; }
+.mts { margin-top: 6px; }
+.centerText { text-align: center; }
