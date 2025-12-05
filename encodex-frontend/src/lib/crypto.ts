@@ -42,7 +42,7 @@ export async function aesGcmDecrypt(key: CryptoKey, iv: ArrayBuffer, ct: ArrayBu
 }
 
 export async function makeVerifier(key: CryptoKey) {
-  const { iv, ct } = await aesGcmEncrypt(key, utf8Enc.encode("ok"));
+  const { iv, ct } = await aesGcmEncrypt(key, utf8Enc.encode("ok").buffer);
   return { verifierB64: bufToB64(ct), verifierIvB64: bufToB64(iv) };
 }
 
