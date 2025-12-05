@@ -1,9 +1,12 @@
 import type { ActivityItem, EncryptedFileMeta, UserRecord } from "./types";
 
+// Activity is still stored locally for now
+const ACTIVITY_KEY = "encodex_activity";
+
+// Keep legacy localStorage functions for backward compatibility and offline mode
 const USERS_KEY = "encodex_users";
 const FILES_PREFIX = "encodex_files_";
 const SHARES_KEY = "encodex_shares";
-const ACTIVITY_KEY = "encodex_activity";
 
 export function loadUsers(): UserRecord[] {
   try { return JSON.parse(localStorage.getItem(USERS_KEY) || "[]"); } catch { return []; }
@@ -18,6 +21,7 @@ export function upsertUser(next: UserRecord) {
   saveUsers(all);
 }
 
+// Legacy file storage (kept for backward compatibility)
 export function loadFiles(email: string): EncryptedFileMeta[] {
   try { return JSON.parse(localStorage.getItem(FILES_PREFIX + email) || "[]"); } catch { return []; }
 }
@@ -44,7 +48,7 @@ export function pushActivity(item: ActivityItem) {
 // Clear all EncodeX data from localStorage
 export function clearAllData() {
   Object.keys(localStorage).forEach(k => {
-    if (k.startsWith("encodex_") || k.startsWith(FILES_PREFIX)) {
+    if (k.startsWith("encodex_") || k.startsWith(FILES_PREFIX) || k === "access_token" || k === "refresh_token") {
       localStorage.removeItem(k);
     }
   });

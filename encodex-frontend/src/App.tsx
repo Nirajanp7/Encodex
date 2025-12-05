@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import "./App.css";
 import { deriveKeyPBKDF2, makeVerifier, verifyKey, bufToB64, b64ToBuf } from "./lib/crypto";
-import { loadUsers, saveUsers, pushActivity } from "./lib/storage";
-import type { UserRecord } from "./lib/types";
+import { pushActivity } from "./lib/storage";
+import { authAPI, clearAuthToken, handleAPIError } from "./lib/api";
 import VaultPage from "./pages/Vault";
 import ScanPage from "./pages/Scan";
 import ShareCenterPage from "./pages/ShareCenter";
@@ -41,9 +41,21 @@ export default function App() {
           <div className="brandTitle">EncodeX</div>
         </div>
         {authed ? (
-          <button className="btn btnSecondary" onClick={() => { setSession(null); push("login"); }}>
-            Logout
-          </button>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button className="btn btnSecondary" onClick={() => push("vault")}>
+              My Files
+            </button>
+            <button className="btn btnSecondary" onClick={() => push("settings")}>
+              Settings
+            </button>
+            <button className="btn btnSecondary" onClick={() => { 
+              setSession(null); 
+              clearAuthToken();
+              push("login"); 
+            }}>
+              Logout
+            </button>
+          </div>
         ) : (
           <div className="headerNote">Secure document vault</div>
         )}
@@ -99,31 +111,48 @@ function AuthScreen({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null); setBusy(true);
+    setError(null); 
+    setBusy(true);
     try {
       if (mode === "register") {
-        const users = loadUsers();
-        if (users.some(u => u.email === email)) throw new Error("Email already registered");
+        // Generate encryption key from password
         const salt = crypto.getRandomValues(new Uint8Array(16)).buffer;
         const iterations = 150_000;
         const key = await deriveKeyPBKDF2(password, salt, iterations) as CryptoKey;
         const { verifierB64, verifierIvB64 } = await makeVerifier(key);
-        const rec: UserRecord = { email, name: name || email.split("@")[0], saltB64: bufToB64(salt), kdfIterations: iterations, verifierB64, verifierIvB64 };
-        users.push(rec); saveUsers(users);
+        
+        // Register with backend
+        await authAPI.register({
+          email,
+          name: name || email.split("@")[0],
+          saltB64: bufToB64(salt),
+          kdfIterations: iterations,
+          verifierB64,
+          verifierIvB64,
+        });
+        
         pushActivity({ id: crypto.randomUUID(), ts: Date.now(), actor: email, type: "REGISTER" });
         onAuthed({ email, key });
       } else {
-        const users = loadUsers();
-        const user = users.find(u => u.email === email);
-        if (!user) throw new Error("No account with this email");
+        // Step 1: Get user data from backend
+        const loginResponse = await authAPI.login(email);
+        const user = loginResponse.user;
+        
+        // Step 2: Derive key from password using user's salt
         const key = await deriveKeyPBKDF2(password, b64ToBuf(user.saltB64), user.kdfIterations) as CryptoKey;
+        
+        // Step 3: Verify password client-side
         const ok = await verifyKey(key, user.verifierB64, user.verifierIvB64);
         if (!ok) throw new Error("Incorrect password");
+        
+        // Step 4: Get JWT tokens from backend
+        await authAPI.verify(email, true);
+        
         pushActivity({ id: crypto.randomUUID(), ts: Date.now(), actor: email, type: "LOGIN" });
         onAuthed({ email, key });
       }
     } catch (err: any) {
-      setError(err?.message || "Authentication failed");
+      setError(handleAPIError(err));
     } finally {
       setBusy(false);
     }

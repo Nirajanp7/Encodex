@@ -26,6 +26,11 @@ export async function deriveKeyPBKDF2(password: string, salt: ArrayBuffer, itera
   );
 }
 
+/**
+ * AES-256-GCM encryption (military-grade authenticated encryption)
+ * Encrypts data client-side before upload - zero-knowledge architecture
+ * IV is randomly generated for each encryption operation
+ */
 export async function aesGcmEncrypt(key: CryptoKey, data: ArrayBuffer) {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, data);

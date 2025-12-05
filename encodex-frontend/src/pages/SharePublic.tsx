@@ -1,43 +1,78 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { b64ToBuf, deriveKeyPBKDF2, aesGcmDecrypt } from "../lib/crypto";
-import { loadShares, loadUsers } from "../lib/storage";
+import { sharesAPI, authAPI, handleAPIError } from "../lib/api";
 import type { EncryptedFileMeta } from "../lib/types";
 
 export default function SharePublicView() {
   const [meta, setMeta] = useState<EncryptedFileMeta | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    const qs = new URLSearchParams(location.hash.split("?")[1] || "");
-    const t = qs.get("token");
-    if (!t) return;
-    const shares = loadShares();
-    setMeta(shares[t] || null);
+    loadSharedFile();
   }, []);
 
-  const download = async () => {
-    if (!meta) return;
-    setBusy(true); setErr(null);
+  const loadSharedFile = async () => {
     try {
-      const users = loadUsers();
-      const owner = users.find((u) => u.email === email);
-      if (!owner) throw new Error("Unknown owner email");
+      setLoading(true);
+      const qs = new URLSearchParams(location.hash.split("?")[1] || "");
+      const t = qs.get("token");
+      if (!t) {
+        setErr("No share token provided");
+        return;
+      }
+      setToken(t);
+      
+      // Get shared file metadata from backend
+      const response = await sharesAPI.get(t);
+      setMeta(response.file);
+    } catch (e: any) {
+      setErr(handleAPIError(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const download = async () => {
+    if (!meta || !token) return;
+    setBusy(true); 
+    setErr(null);
+    try {
+      // Get user data to derive decryption key
+      const loginResponse = await authAPI.login(email);
+      const owner = loginResponse.user;
+      
+      // Derive key from password
       const key = await deriveKeyPBKDF2(password, b64ToBuf(owner.saltB64), owner.kdfIterations) as CryptoKey;
-      const pt = await aesGcmDecrypt(key, b64ToBuf(meta.ivB64), b64ToBuf(meta.ctB64));
+      
+      // Download encrypted file from backend
+      const encryptedBlob = await sharesAPI.download(token);
+      
+      // Decrypt file client-side
+      const encryptedBytes = await encryptedBlob.arrayBuffer();
+      const pt = await aesGcmDecrypt(key, b64ToBuf(meta.ivB64), encryptedBytes);
+      
+      // Create download
       const blob = new Blob([pt]);
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = meta.filename; a.click();
+      const a = document.createElement("a"); 
+      a.href = url; 
+      a.download = meta.filename; 
+      a.click();
       URL.revokeObjectURL(url);
     } catch (e: any) {
-      setErr(e?.message || "Decryption failed");
+      setErr(handleAPIError(e));
     } finally {
       setBusy(false);
     }
   };
 
+  if (loading) return <div className="card centerText authCard">Loading shared file...</div>;
+  if (err && !meta) return <div className="card centerText authCard">{err}</div>;
   if (!meta) return <div className="card centerText authCard">Invalid or expired link.</div>;
 
   return (
