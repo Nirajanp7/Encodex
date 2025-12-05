@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from ..models import File, Share
+from ..models import File, Share, User
 from .. import db
 from ..utils.file_handler import read_encrypted_file
 import uuid
@@ -26,6 +26,9 @@ def create_share():
         if not file_record:
             return jsonify({'error': 'File not found'}), 404
 
+        # Optional recipient email (for user-to-user sharing)
+        shared_with_email = data.get('sharedWithEmail')
+
         token = str(uuid.uuid4())
         
         expires_days = data.get('expiresDays', 7)
@@ -35,6 +38,7 @@ def create_share():
             id=str(uuid.uuid4()),
             file_id=file_id,
             token=token,
+            shared_with_email=shared_with_email,
             expires_at=expires_at
         )
         
@@ -150,6 +154,45 @@ def list_file_shares(file_id):
         
         return jsonify({
             'shares': [s.to_dict() for s in shares]
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/shared-with-me', methods=['GET'])
+@jwt_required()
+def list_shared_with_me():
+    """List all files shared with the current user"""
+    try:
+        from flask_jwt_extended import get_jwt
+        claims = get_jwt()
+        email = claims.get('email')
+        
+        if not email:
+            return jsonify({'error': 'Email not found in token'}), 400
+        
+        # Get all shares where shared_with_email matches current user
+        shares = Share.query.filter_by(shared_with_email=email).all()
+        
+        # Get file details for each share
+        shared_files = []
+        for share in shares:
+            # Check if share is expired
+            if share.expires_at and share.expires_at < datetime.utcnow():
+                continue
+                
+            file_record = File.query.get(share.file_id)
+            if file_record:
+                owner = User.query.get(file_record.user_id)
+                shared_files.append({
+                    'share': share.to_dict(),
+                    'file': file_record.to_dict(),
+                    'owner_email': owner.email if owner else 'Unknown',
+                    'owner_name': owner.name if owner else 'Unknown'
+                })
+        
+        return jsonify({
+            'shared_files': shared_files
         }), 200
         
     except Exception as e:

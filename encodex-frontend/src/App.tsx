@@ -85,7 +85,7 @@ export default function App() {
         {authed && route === "vault" && <VaultPage session={session!} />}
         {authed && route === "scan" && <ScanPage session={session!} />}
         {authed && route === "share-center" && <ShareCenterPage email={session!.email} />}
-        {authed && route === "activity" && <ActivityPage />}
+        {authed && route === "activity" && <ActivityPage email={session!.email} />}
         {authed && route === "settings" && <SettingsPage email={session!.email} />}
 
         {!authed && route === "share" && <SharePublicView />}

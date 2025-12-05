@@ -10,15 +10,18 @@ const typeNice: Record<ActivityItem["type"], string> = {
   SETTINGS_UPDATE: "Settings Updated", CLEAR_DATA: "Cleared Data"
 };
 
-export default function ActivityPage() {
+export default function ActivityPage({ email }: { email: string }) {
   const [q, setQ] = useState("");
   const [items] = useState<ActivityItem[]>(() => loadActivity());
 
+  // Filter activities to show only the current user's activities
   const filtered = useMemo(() =>
-    items.filter(i => {
-      const text = JSON.stringify(i).toLowerCase();
-      return !q || text.includes(q.toLowerCase());
-    }), [items, q]);
+    items
+      .filter(i => i.actor === email) // Only show current user's activities
+      .filter(i => {
+        const text = JSON.stringify(i).toLowerCase();
+        return !q || text.includes(q.toLowerCase());
+      }), [items, q, email]);
 
   return (
     <section style={{ display: "grid", gap: 16 }}>

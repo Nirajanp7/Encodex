@@ -1,7 +1,8 @@
 import React, { useRef, useState } from "react";
 import { aesGcmEncrypt, bufToB64 } from "../lib/crypto";
-import { pushActivity, loadFiles, saveFiles } from "../lib/storage";
-import type { DocType, EncryptedFileMeta, VaultCategory } from "../lib/types";
+import { pushActivity } from "../lib/storage";
+import { filesAPI, handleAPIError } from "../lib/api";
+import type { DocType, VaultCategory } from "../lib/types";
 
 const CATEGORIES: VaultCategory[] = ["Identification", "Insurance", "Legal", "Financial", "Other"];
 
@@ -13,6 +14,7 @@ export default function ScanPage({ session }: { session: { email: string; key: C
   const [autoCrop, setAutoCrop] = useState(true);
   const [enhance, setEnhance] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const onPick = () => fileRef.current?.click();
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,27 +28,37 @@ export default function ScanPage({ session }: { session: { email: string; key: C
   const onSave = async () => {
     if (!file) return;
     setBusy(true);
+    setError(null);
     try {
       // Auto-crop/enhance are simulated
       const bytes = await file.arrayBuffer();
       const { iv, ct } = await aesGcmEncrypt(session.key, bytes);
-      const meta: EncryptedFileMeta = {
-        id: crypto.randomUUID(),
-        owner: session.email,
+      
+      // Upload encrypted file to backend
+      const encryptedBlob = new Blob([ct]);
+      await filesAPI.upload(encryptedBlob, {
         filename: file.name,
         size: file.size,
         category,
         docType: "Image" as DocType,
-        createdAt: Date.now(),
         ivB64: bufToB64(iv),
-        ctB64: bufToB64(ct),
-      };
-      const all = loadFiles(session.email);
-      all.unshift(meta);
-      saveFiles(session.email, all);
-      pushActivity({ id: crypto.randomUUID(), ts: Date.now(), actor: session.email, type: "SCAN_SAVE", meta: { filename: file.name, category, autoCrop, enhance }});
-      alert("Saved to Vault.");
-      setFile(null); setPreviewUrl(null);
+      });
+      
+      pushActivity({ 
+        id: crypto.randomUUID(), 
+        ts: Date.now(), 
+        actor: session.email, 
+        type: "SCAN_SAVE", 
+        meta: { filename: file.name, category, autoCrop, enhance }
+      });
+      
+      alert("Saved to Vault!");
+      setFile(null); 
+      setPreviewUrl(null);
+    } catch (err: any) {
+      const errorMsg = handleAPIError(err);
+      setError(errorMsg);
+      alert("Failed to save: " + errorMsg);
     } finally {
       setBusy(false);
     }
@@ -56,6 +68,10 @@ export default function ScanPage({ session }: { session: { email: string; key: C
     <section className="card" style={{ display: "grid", gap: 16 }}>
       <h2 style={{ margin: 0 }}>Scan</h2>
       <p className="subtle">Capture/Upload a photo of a document. Auto-crop & enhance are simulated for now.</p>
+      
+      {error && (
+        <div className="error">{error}</div>
+      )}
 
       <div className="row">
         <button className="btn btnPrimary" onClick={onPick}>Upload Image</button>

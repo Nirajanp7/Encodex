@@ -149,8 +149,8 @@ export const filesAPI = {
 
 // Shares API
 export const sharesAPI = {
-  async create(fileId: string, expiresDays: number = 7) {
-    const response = await api.post('/api/shares', { fileId, expiresDays });
+  async create(fileId: string, expiresDays: number = 7, sharedWithEmail?: string) {
+    const response = await api.post('/api/shares', { fileId, expiresDays, sharedWithEmail });
     return response.data;
   },
 
@@ -175,6 +175,11 @@ export const sharesAPI = {
 
   async listForFile(fileId: string) {
     const response = await api.get(`/api/shares/file/${fileId}`);
+    return response.data;
+  },
+
+  async listSharedWithMe() {
+    const response = await api.get('/api/shares/shared-with-me');
     return response.data;
   },
 };

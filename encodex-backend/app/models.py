@@ -63,6 +63,7 @@ class Share(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     file_id = db.Column(db.String(36), db.ForeignKey('files.id'), nullable=False, index=True)
     token = db.Column(db.String(36), unique=True, nullable=False, index=True)
+    shared_with_email = db.Column(db.String(255), nullable=True, index=True)  # Email of recipient user
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     expires_at = db.Column(db.DateTime, nullable=True)
     
@@ -71,6 +72,7 @@ class Share(db.Model):
             'id': self.id,
             'file_id': self.file_id,
             'token': self.token,
+            'shared_with_email': self.shared_with_email,
             'created_at': self.created_at.isoformat(),
             'expires_at': self.expires_at.isoformat() if self.expires_at else None
         }
