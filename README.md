@@ -85,11 +85,7 @@ Frontend will run on: **http://localhost:5173**
 ✅ **User Registration & Login** - Create account with email and password  
 ✅ **File Upload** - Drag & drop or browse to upload files (encrypted automatically)  
 ✅ **File Download** - Download and decrypt your files  
-✅ **File Delete** - Remove files you don't need  
-✅ **File Sharing** - Create secure share links for others  
-✅ **File Categories** - Organize by Identification, Insurance, Legal, Financial  
-✅ **Dark Theme UI** - Modern purple/blue gradient design  
-✅ **Activity Tracking** - See your recent actions  
+✅ **File Delete** - Remove files you don't need   
 
 ## Tech Stack
 
@@ -165,24 +161,6 @@ Frontend settings in `encodex-frontend/.env`:
 ```env
 VITE_API_BASE_URL=http://localhost:5000
 ```
-
-## Production Use
-
-For production deployment:
-- Use PostgreSQL instead of SQLite
-- Use strong secret keys
-- Enable HTTPS
-- Add rate limiting
-- Regular backups
-
-## License
-
-MIT License - See LICENSE file
-
-## Author
-
-Nirajan - [GitHub](https://github.com/Nirajanp7)
-
 ---
 
 ⭐ **Star this project if you find it useful!**
