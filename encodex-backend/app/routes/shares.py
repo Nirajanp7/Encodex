@@ -13,7 +13,6 @@ bp = Blueprint('shares', __name__, url_prefix='/api/shares')
 @bp.route('', methods=['POST'])
 @jwt_required()
 def create_share():
-    """Create a share link for a file"""
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -26,7 +25,6 @@ def create_share():
         if not file_record:
             return jsonify({'error': 'File not found'}), 404
 
-        # Optional recipient email (for user-to-user sharing)
         shared_with_email = data.get('sharedWithEmail')
 
         token = str(uuid.uuid4())
@@ -162,7 +160,6 @@ def list_file_shares(file_id):
 @bp.route('/shared-with-me', methods=['GET'])
 @jwt_required()
 def list_shared_with_me():
-    """List all files shared with the current user"""
     try:
         from flask_jwt_extended import get_jwt
         claims = get_jwt()
@@ -171,13 +168,10 @@ def list_shared_with_me():
         if not email:
             return jsonify({'error': 'Email not found in token'}), 400
         
-        # Get all shares where shared_with_email matches current user
         shares = Share.query.filter_by(shared_with_email=email).all()
         
-        # Get file details for each share
         shared_files = []
         for share in shares:
-            # Check if share is expired
             if share.expires_at and share.expires_at < datetime.utcnow():
                 continue
                 
