@@ -82,12 +82,12 @@ Frontend will run on: **http://localhost:5173**
 
 ## Current Features
 
-✅ **User Registration & Login** – Easily register or sign in with your email and password  
-✅ **End-to-End Encrypted File Uploads** – Drag & drop or browse to upload files; files are encrypted locally before upload  
-✅ **Secure File Download & Decryption** – Download your files and decrypt them client-side  
-✅ **File Deletion** – Permanently remove unneeded files from your vault  
-✅ **File Sharing** – Share encrypted files securely with others via generated links  
-✅ **Categorize & Organize** – Assign categories and types to your uploaded documents for easy organization  
+ **User Registration & Login** – Easily register or sign in with your email and password  
+ **End-to-End Encrypted File Uploads** – Drag & drop or browse to upload files; files are encrypted locally before upload  
+ **Secure File Download & Decryption** – Download your files and decrypt them client-side  
+ **File Deletion** – Permanently remove unneeded files from your vault  
+ **File Sharing** – Share encrypted files securely with others via generated links  
+ **Categorize & Organize** – Assign categories and types to your uploaded documents for easy organization  
 
 ## Tech Stack
 
